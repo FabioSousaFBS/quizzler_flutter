@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:quizzler_flutter/quiz_brain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 class Quizzler extends StatefulWidget {
   const Quizzler({Key? key}) : super(key: key);
@@ -8,25 +10,45 @@ class Quizzler extends StatefulWidget {
 }
 
 class _QuizzlerState extends State<Quizzler> {
-
   List<Icon> scoreKeeper = [];
-  List<String> questions = [
-    'You can lead a cow down stairs but not up stairs.',
-    'Approximately one quarter of human bones are in the feet.',
-    'A slug\'s blood is green.'
-  ];
+  QuizBrain quizBrain = QuizBrain();
 
-  List<bool> answers = [
-    false,
-    true,
-    true
-  ];
+  void checkAnswer(BuildContext context, bool userPickedAnswer) {
+    bool correctAnswer = quizBrain.getQuestionAnswer();
+    setState(() {
+      if (userPickedAnswer == correctAnswer) {
+        print('user got it right');
+        scoreKeeper.add(Icon(
+          Icons.check,
+          color: Colors.green,
+        ));
+      } else {
+        scoreKeeper.add(Icon(
+          Icons.close,
+          color: Colors.red,
+        ));
+      }
 
-  int questionNumber = 0;
+      var test = quizBrain.isTheEnd();
+      if (test == true) {
+        _onBasicAlertPressed(context);
+        scoreKeeper.clear();
+      } else {
+        quizBrain.nextQuestion();
+      }
+    });
+  }
+
+  _onBasicAlertPressed(context) {
+    Alert(
+      context: context,
+      title: "Finished!",
+      desc: "You've reached the end of the quiz.",
+    ).show();
+  }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -44,7 +66,7 @@ class _QuizzlerState extends State<Quizzler> {
               padding: EdgeInsets.all(10.0),
               child: Center(
                 child: Text(
-                  questions[questionNumber],
+                  quizBrain.getQuestionText(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 25.0,
@@ -60,7 +82,8 @@ class _QuizzlerState extends State<Quizzler> {
               child: ElevatedButton(
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all(Colors.green),
-                  textStyle: MaterialStateProperty.all(TextStyle(color: Colors.white)),
+                  textStyle:
+                      MaterialStateProperty.all(TextStyle(color: Colors.white)),
                 ),
                 child: Text(
                   'True',
@@ -70,25 +93,7 @@ class _QuizzlerState extends State<Quizzler> {
                   ),
                 ),
                 onPressed: () {
-                  //The user picked true.
-                  bool correctAnswer = answers[questionNumber];
-
-                  if(correctAnswer == true){
-                    print('user got it right');
-                  }else{
-                    print('user got it wrong');
-                  }
-
-                  setState(() {
-
-
-                    scoreKeeper.add(Icon(Icons.check, color: Colors.green,));
-                    if(questionNumber == (questions.length - 1) ){
-                      questionNumber = 0;
-                    }else{
-                      questionNumber++;
-                    }
-                  });
+                  checkAnswer(context, true);
                 },
               ),
             ),
@@ -108,22 +113,7 @@ class _QuizzlerState extends State<Quizzler> {
                   ),
                 ),
                 onPressed: () {
-                  //The user picked false.
-                  bool correctAnswer = answers[questionNumber];
-
-                  if(correctAnswer == false){
-                    print('user got it right');
-                  }else{
-                    print('user got it wrong');
-                  }
-                  setState(() {
-                    scoreKeeper.add(Icon(Icons.close, color: Colors.red,));
-                    if(questionNumber == (questions.length - 1) ){
-                      questionNumber = 0;
-                    }else{
-                      questionNumber++;
-                    }
-                  });
+                  checkAnswer(context, false);
                 },
               ),
             ),
@@ -136,9 +126,3 @@ class _QuizzlerState extends State<Quizzler> {
     );
   }
 }
-
-/*
-  question1: 'You can lead a cow down stairs but not up stairs.', false,
-  question2: 'Approximately one quarter of human bones are in the feet.', true,
-  question3: 'A slug\'s blood is green.', true,
-*/
